@@ -1,0 +1,6 @@
+VIDEO_SOURCE = "rtsp://192.168.1.204:8554/stream" # us 0 for local camera
+
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 480
+
+LINE_POSITION = 250

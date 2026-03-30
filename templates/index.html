@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Dashboard</title>
+
+    <!-- 🔥 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+async function loadAnalytics() {
+    try {
+        const res = await fetch("/analytics");
+        const data = await res.json();
+
+        // 🔥 Replace graph data with DB data
+        liveChart.data.labels = data.labels;
+        liveChart.data.datasets[0].data = data.values;
+
+        liveChart.update();
+    } catch (err) {
+        console.error("Analytics error:", err);
+    }
+}
+
+// 🔥 Load once on page start
+loadAnalytics();
+</script>
+
+    <script>
+    (function() {
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${protocol}://${window.location.host}/ws`;
+        
+        console.log("Connecting to:", wsUrl);
+        const ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            document.getElementById("total").innerText = data.total;
+            document.getElementById("current").innerText = data.current;
+
+            // 🔥 STATUS COLOR LOGIC
+            const status = document.getElementById("status");
+            if (data.current > 5) {
+                status.style.color = "red";
+                status.innerText = "High Crowd";
+            } else {
+                status.style.color = "lime";
+                status.innerText = "Normal";
+            }
+
+            // 🔥 GRAPH UPDATE
+            const time = new Date().toLocaleTimeString();
+
+            liveChart.data.labels.push(time);
+            liveChart.data.datasets[0].data.push(data.current);
+
+            if (liveChart.data.labels.length > 20) {
+                liveChart.data.labels.shift();
+                liveChart.data.datasets[0].data.shift();
+            }
+
+            liveChart.update();
+        };
+
+        ws.onerror = (err) => console.error("WebSocket Error:", err);
+        ws.onclose = () => console.log("WebSocket Closed");
+    })();
+    </script>
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        /* 🔥 UPGRADED CARD */
+        .card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 25px;
+            border-radius: 16px;
+            width: 180px;
+            box-shadow: 0 0 15px rgba(0,255,255,0.3);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .value {
+            font-size: 30px;
+            margin-top: 10px;
+        }
+
+        img {
+            margin-top: 20px;
+            margin-bottom: 40px;
+            border: 3px solid cyan;
+        }
+
+        canvas {
+            width: 70% !important;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 AI Employee Dashboard</h1>
+
+<!-- 🔥 STATUS -->
+<h2>Status: <span id="status" style="color: lime;">Normal</span></h2>
+
+<img src="/video" width="60%">
+
+<div class="container">
+    <div class="card">
+        <h3>Total</h3>
+        <div id="total" class="value">0</div>
+    </div>
+
+    <div class="card">
+        <h3>Live</h3>
+        <div id="current" class="value">0</div>
+    </div>
+</div>
+
+<!-- 🔥 GRAPH -->
+<canvas id="liveChart" width="400" height="150"></canvas>
+
+<script>
+const ctx = document.getElementById('liveChart').getContext('2d');
+
+const chartData = {
+    labels: [],
+    datasets: [{
+        label: 'Live People',
+        data: [],
+        borderWidth: 2,
+        tension: 0.3
+    }]
+};
+
+const liveChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
