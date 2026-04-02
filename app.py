@@ -25,7 +25,7 @@ try:
 
         frame_count += 1
 
-        # 🔥 Skip early (performance fix)
+        
         if frame_count % frame_skip != 0:
             continue
 
@@ -45,10 +45,10 @@ try:
             boxes = []
             ids = []
 
-        # ✅ FIRST calculate values
+        
         total, current = counter.update(boxes, ids)
 
-        # ✅ THEN draw UI
+        
         annotated = draw_ui(annotated, total, current)
 
         log_data.append({

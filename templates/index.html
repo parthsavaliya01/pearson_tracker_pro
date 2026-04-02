@@ -3,7 +3,7 @@
 <head>
     <title>AI Dashboard</title>
 
-    <!-- 🔥 Chart.js -->
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
@@ -12,7 +12,7 @@ async function loadAnalytics() {
         const res = await fetch("/analytics");
         const data = await res.json();
 
-        // 🔥 Replace graph data with DB data
+        
         liveChart.data.labels = data.labels;
         liveChart.data.datasets[0].data = data.values;
 
@@ -22,7 +22,7 @@ async function loadAnalytics() {
     }
 }
 
-// 🔥 Load once on page start
+
 loadAnalytics();
 </script>
 
@@ -39,8 +39,10 @@ loadAnalytics();
 
             document.getElementById("total").innerText = data.total;
             document.getElementById("current").innerText = data.current;
+            document.getElementById("entered").innerText = data.entered;
+            document.getElementById("exited").innerText = data.exited;
 
-            // 🔥 STATUS COLOR LOGIC
+            
             const status = document.getElementById("status");
             if (data.current > 5) {
                 status.style.color = "red";
@@ -50,7 +52,6 @@ loadAnalytics();
                 status.innerText = "Normal";
             }
 
-            // 🔥 GRAPH UPDATE
             const time = new Date().toLocaleTimeString();
 
             liveChart.data.labels.push(time);
@@ -88,7 +89,6 @@ loadAnalytics();
             margin-bottom: 50px;
         }
 
-        /* 🔥 UPGRADED CARD */
         .card {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             padding: 25px;
@@ -124,7 +124,6 @@ loadAnalytics();
 
 <h1>🚀 AI Employee Dashboard</h1>
 
-<!-- 🔥 STATUS -->
 <h2>Status: <span id="status" style="color: lime;">Normal</span></h2>
 
 <img src="/video" width="60%">
@@ -140,8 +139,15 @@ loadAnalytics();
         <div id="current" class="value">0</div>
     </div>
 </div>
+<div class="card">
+    <h3>IN</h3>
+    <div id="entered" class="value">0</div>
+</div>
 
-<!-- 🔥 GRAPH -->
+<div class="card">
+    <h3>OUT</h3>
+    <div id="exited" class="value">0</div>
+</div>
 <canvas id="liveChart" width="400" height="150"></canvas>
 
 <script>

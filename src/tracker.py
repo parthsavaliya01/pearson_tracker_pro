@@ -9,9 +9,9 @@ class PersonTracker:
     frame,
     persist=True,
     classes=[0],
-    conf=0.5,
+    conf=0.4,     
     iou=0.5,
     tracker="bytetrack.yaml",
-    imgsz=480   
+    imgsz=640  
 )
         return results
