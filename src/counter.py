@@ -1,80 +1,99 @@
-import numpy as np
-from config import LINE_POSITION
+from config import LINE_POSITION, INSIDE_DIRECTION, FRAME_WIDTH, EDGE_MARGIN
+
 
 class PeopleCounter:
     def __init__(self):
         self.unique_ids = set()
-        self.id_mapping = {}
-        self.next_unique_id = 0
+        self.active_ids = set()
 
-        self.previous_positions = {}
-        self.id_last_seen = {}
+        self.prev_cx: dict[int, float] = {}
 
-        self.frame_count = 0
+        self.pending: dict[int, str] = {}
 
-        self.crossed_ids = set()
         self.enter_count = 0
-        self.exit_count = 0
+        self.exit_count  = 0
 
-    def _get_center(self, box):
+    @staticmethod
+    def _foot_cx(box):
         x1, y1, x2, y2 = box
-        return int((x1 + x2) / 2), int((y1 + y2) / 2)
+        return (x1 + x2) / 2.0
+
+    def _near_edge(self, cx: float) -> bool:
+        """Returns True if foot is near the left or right frame edge."""
+        return cx < EDGE_MARGIN or cx > (FRAME_WIDTH - EDGE_MARGIN)
+
+    def _confirm(self, track_id: int):
+        """Commit a pending crossing as a real count."""
+        direction = self.pending.pop(track_id, None)
+        if direction == 'enter':
+            self.enter_count += 1
+        elif direction == 'exit':
+            self.exit_count += 1
+
+    def _cancel(self, track_id: int):
+        """Person reversed — discard the pending crossing."""
+        self.pending.pop(track_id, None)
 
     def update(self, boxes, ids):
-        self.frame_count += 1
-
-        if ids is None or len(ids) == 0:
-            return len(self.unique_ids), 0, self.enter_count, self.exit_count
-
         current_ids = set()
 
-        for box, tracker_id in zip(boxes, ids):
-            tracker_id = int(tracker_id)
-            cx, cy = self._get_center(box)
+        for box, track_id in zip(boxes, ids):
+            track_id = int(track_id)
+            current_ids.add(track_id)
+            cx = self._foot_cx(box)
 
-            if tracker_id not in self.id_mapping:
-                matched = False
-                for stable_id, (px, py) in self.previous_positions.items():
-                    dist = np.hypot(cx - px, cy - py)
+            if track_id not in self.active_ids:
+                self.unique_ids.add(track_id)
+                self.active_ids.add(track_id)
+                self.prev_cx[track_id] = cx
+                continue
 
-                    if dist < 30:
-                        self.id_mapping[tracker_id] = stable_id
-                        matched = True
-                        break
+            prev = self.prev_cx.get(track_id, cx)
+            line = float(LINE_POSITION)
 
-                if not matched:
-                    self.id_mapping[tracker_id] = self.next_unique_id
-                    self.next_unique_id += 1
+            crossed_toward_inside  = (prev > line) and (cx <= line)  # right→left
+            crossed_toward_outside = (prev < line) and (cx >= line)  # left→right
 
-            stable_id = self.id_mapping[tracker_id]
+            if INSIDE_DIRECTION == 'left':
 
-            self.unique_ids.add(stable_id)
-            current_ids.add(stable_id)
+                crossed_entry = crossed_toward_inside
+                crossed_exit  = crossed_toward_outside
+            else:
+                # moving left→right = entering
+                crossed_entry = crossed_toward_outside
+                crossed_exit  = crossed_toward_inside
 
-            if stable_id in self.previous_positions:
-                prev_x, prev_y = self.previous_positions[stable_id]
+            # ── stage 1: line was just crossed ────────────────────────
+            if track_id not in self.pending:
+                if crossed_entry:
+                    self.pending[track_id] = 'enter'
+                elif crossed_exit:
+                    self.pending[track_id] = 'exit'
 
-                if prev_x < LINE_POSITION and cx >= LINE_POSITION:
-                    if stable_id not in self.crossed_ids:
-                        self.enter_count += 1
-                        self.crossed_ids.add(stable_id)
+            elif track_id in self.pending:
+                pending_dir = self.pending[track_id]
 
-                elif prev_x > LINE_POSITION and cx <= LINE_POSITION:
-                    if stable_id not in self.crossed_ids:
-                        self.exit_count += 1
-                        self.crossed_ids.add(stable_id)
+                if pending_dir == 'enter' and crossed_exit:
+                    self._cancel(track_id)
+                elif pending_dir == 'exit' and crossed_entry:
+                    self._cancel(track_id)
 
-            self.previous_positions[stable_id] = (cx, cy)
-            self.id_last_seen[stable_id] = self.frame_count
+                elif self._near_edge(cx):
+                    self._confirm(track_id)
 
-        to_delete = []
-        for sid, last_seen in self.id_last_seen.items():
-            if self.frame_count - last_seen > 20:
-                to_delete.append(sid)
+            self.prev_cx[track_id] = cx
 
-        for sid in to_delete:
-            self.previous_positions.pop(sid, None)
-            self.id_last_seen.pop(sid, None)
-            self.crossed_ids.discard(sid)
+        lost = self.active_ids - current_ids
+        for tid in lost:
+    
+            if tid in self.pending:
+                self._confirm(tid)
+            self.prev_cx.pop(tid, None)
+        self.active_ids -= lost
 
-        return len(self.unique_ids), len(current_ids), self.enter_count, self.exit_count
+        return (
+            len(self.unique_ids),
+            len(current_ids),
+            self.enter_count,
+            self.exit_count,
+        )

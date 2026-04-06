@@ -1,8 +1,14 @@
-# VIDEO_SOURCE = "rtsp://192.168.0.231:8554/stream"
+# ── Video source ──────────────────────────────────────────────────────────────
+VIDEO_SOURCE = 1
 
-VIDEO_SOURCE = 0  # Use 0 for webcam, or replace with video file path or RTSP stream URL"
-FRAME_WIDTH = 640
+# ── Frame dimensions ──────────────────────────────────────────────────────────
+FRAME_WIDTH  = 640
 FRAME_HEIGHT = 480
 
-LINE_POSITION = 150   # 👈 adjust based on door (X-axis)
- 
+LINE_POSITION = 150
+
+INSIDE_DIRECTION = 'right'
+
+EDGE_MARGIN = 60
+
+CONFIRM_FRAMES = 20
