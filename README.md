@@ -3,7 +3,7 @@
 A production-ready real-time employee tracking system built with Python, FastAPI, YOLOv8, and OpenCV. The project detects people, tracks them with stable IDs, counts entries and exits across a configurable virtual door line, and serves a live dashboard with analytics and streaming video.
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)![![Production--Ready-brightgreen)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
 
 
 ---
