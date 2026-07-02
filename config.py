@@ -1,8 +1,17 @@
-# VIDEO_SOURCE = "rtsp://192.168.0.231:8554/stream"
+import os
+from pathlib import Path
 
-VIDEO_SOURCE = 0  # Use 0 for webcam, or replace with video file path or RTSP stream URL"
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 480
+BASE_DIR = Path(__file__).resolve().parent
 
-LINE_POSITION = 150   # 👈 adjust based on door (X-axis)
- 
+MODEL_PATH = os.getenv("MODEL_PATH", str(BASE_DIR / "models" / "yolov8n.pt"))
+VIDEO_SOURCE = os.getenv("VIDEO_SOURCE", "0")
+FRAME_WIDTH = int(os.getenv("FRAME_WIDTH", "640"))
+FRAME_HEIGHT = int(os.getenv("FRAME_HEIGHT", "480"))
+LINE_POSITION = int(os.getenv("LINE_POSITION", "310"))
+INSIDE_DIRECTION = os.getenv("INSIDE_DIRECTION", "right").lower()
+EDGE_MARGIN = int(os.getenv("EDGE_MARGIN", "60"))
+DETECTION_CONFIDENCE = float(os.getenv("DETECTION_CONFIDENCE", "0.45"))
+IOU_THRESHOLD = float(os.getenv("IOU_THRESHOLD", "0.50"))
+TRACKER_CONFIDENCE = float(os.getenv("TRACKER_CONFIDENCE", "0.45"))
+DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "data" / "tracker.db"))
+DATA_DIR = BASE_DIR / "data"
