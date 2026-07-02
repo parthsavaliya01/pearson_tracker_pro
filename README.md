@@ -5,11 +5,6 @@ A production-ready real-time employee tracking system built with Python, FastAPI
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)![![Production--Ready-brightgreen)
 
--## 🎥 Demo
-
-> ⚠️ Add your demo GIF here (very important for recruiters)
-
-
 
 ---
 
